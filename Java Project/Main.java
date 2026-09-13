@@ -1,55 +1,52 @@
+import javax.swing.*;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
+public class Main {
+    public static void main(String[] args) {
+        try {
+            Star sun = new Star("Sun", 1000000, new Location(0, 0), 10, new Velocity(0, 0));
 
-public class Main{
-    public static void main (String []args){
-        
-        Star sun = new Star ("Sun",1000000,new Location(0,0),10,new Velocity(0,0));
-        Planet mercury=new Planet("Mercury",1.660,new Location(38.7,0),2,new Velocity(0,0));
-        Planet venus=new Planet("Venus",24.47,new Location(72.3,0),2.5,new Velocity(0,0));
-        Planet earth=new Planet("Earth",30.03,new Location(100,0),2.7,new Velocity(0,0.000000629));
-        Planet mars=new Planet("Mars",3.227,new Location(152.4,0),2.2,new Velocity(0,0));
-        Planet jupiter=new Planet("Jupiter",954.6,new Location(520.4,0),6,new Velocity(0,0));
-        Planet saturn=new Planet("Saturn",285.8,new Location(957.4,0),5,new Velocity(0,0));
-        Planet uranus=new Planet("Uranus",43.66,new Location(1921,0),4,new Velocity(0,0));
-        Planet neptune=new Planet("Neptune",51.51,new Location(3002,0),4, new Velocity(0,0));
-    /*checking newobjects
-        System.out.println(jupiter.mass);
-        */
-    /*checking physics gravity method
-        Velocity acceleration =Physics.calculateGravity(earth,sun);
-        System.out.println("X acceleration: "+ acceleration.vx);
-        System.out.println("Y acceleration: "+ acceleration.vy);
-        */
-     //checking acceleration  and if it changes the location aspects
-         for (int i=0;i<10000;i++){
-            Velocity acceleration= Physics.calculateGravity(earth,sun);
-            Physics.updateBody(earth,acceleration,1);
-            /*System.out.println("Earths x:"+ earth.l.x);
-            System.out.println("Earths y:"+ earth.l.y);
-            System.out.println("Earths vx:"+ earth.v.vx);
-            System.out.println("Earths vy:"+ earth.v.vy);
-            */
+            List<Body> bodies = new ArrayList<>();
+            bodies.add(sun);
+            bodies.add(makePlanet("Mercury", 1.660, 138.7, 4, sun, Color.GRAY));
+            bodies.add(makePlanet("Venus", 24.47, 272.3, 5, sun, Color.ORANGE));
+            bodies.add(makePlanet("Earth", 30.03, 300, 5.4, sun, Color.BLUE));
+            bodies.add(makePlanet("Mars", 3.227, 452.4, 4.4, sun, Color.RED));
+            bodies.add(makePlanet("Jupiter", 954.6, 520.4, 12, sun, new Color(210, 180, 140))); // tan
+            bodies.add(makePlanet("Saturn", 285.8, 957.4, 10, sun, new Color(230, 210, 150)));  // pale gold
+            bodies.add(makePlanet("Uranus", 43.66, 1921, 8, sun, new Color(150, 220, 220)));   // pale teal
+            bodies.add(makePlanet("Neptune", 51.51, 3002, 8, sun, new Color(70, 100, 220)));   // deep blue
 
+            // Generics demo: pull out just the Planets from the mixed Body list,
+            // with no casting needed and full type safety.
+            List<Planet> planetsOnly = Bodyutils.filterByType(bodies, Planet.class);
+            System.out.println("Planet count: " + planetsOnly.size());
+            for (Planet p : planetsOnly) {
+                System.out.println(" - " + p.name);
+            }
+
+            JFrame frame = new JFrame("Solar System Simulation");
+            SimulationPanel panel = new SimulationPanel(bodies);
+            frame.add(panel);
+            frame.pack();
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+
+        } catch (InvalidBodyException e) {
+            System.err.println("Failed to create solar system: " + e.getMessage());
         }
-         System.out.println("Earths x:"+ earth.l.x);
-         System.out.println("Earths y:"+ earth.l.y);
-         System.out.println("Earths vx:"+ earth.v.vx);
-         System.out.println("Earths vy:"+ earth.v.vy);
-            
-
-      
-        
-
-       
-
-
-
-
-        
-        
-        
-
-
     }
 
+    // helper to build a planet with a correct circular orbit speed.
+    // The planet is drawn cyan until hit by a meteor, then reveals trueColor.
+    static Planet makePlanet(String name, double mass, double distance, double radius, Star sun, Color trueColor)
+            throws InvalidBodyException {
+        double speed = Physics.circularOrbitSpeed(sun.mass, distance);
+        Planet p = new Planet(name, mass, new Location(distance, 0), radius, new Velocity(0, speed));
+        p.trueColor = trueColor; // color is left as the default cyan
+        return p;
+    }
 }
